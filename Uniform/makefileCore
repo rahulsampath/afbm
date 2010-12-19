@@ -1,0 +1,18 @@
+
+INCLUDE = ${PETSC_INCLUDE} 
+
+LIBS = ${PETSC_LIB} 
+
+all : driver
+
+%.o: %.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+driver : ./driver.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+clean :
+	rm -rf driver
+	rm -rf *.o
+
+
