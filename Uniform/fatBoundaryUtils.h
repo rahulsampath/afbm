@@ -3,16 +3,17 @@
 #define __FAT_BOUNDARY__
 
 #include "petsc.h"
-#include "PetscMatrix.h"
+#include "petscmat.h"
 #include "petscvec.h"
 
-createNeumann(unsigned int Dim);
+void createNeumann(unsigned int Dim);
 
-dirichletMatCorrection();
+void dirichletMatCorrection();
 
-dirichletVecCorrection();
+void dirichletVecCorrection();
 
-computeRHS();
+void computeRHS();
 
 #endif
+
 
