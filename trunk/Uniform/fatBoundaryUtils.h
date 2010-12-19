@@ -6,13 +6,13 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
-void createNeumann(unsigned int Dim);
+void createNeumannMatrix_Fat(Mat mat);
 
-void dirichletMatCorrection();
+void dirichletMatCorrection_Fat();
 
-void dirichletVecCorrection();
+void dirichletVecCorrection_Fat();
 
-void computeRHS();
+void computeRHS_Fat();
 
 #endif
 
