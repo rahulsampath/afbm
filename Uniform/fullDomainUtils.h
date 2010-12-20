@@ -12,6 +12,8 @@ void setDirichletValues_Full(DA da, Vec vec);
 
 void computeRHS_Full(DA da, Vec rhs);
 
+double phi(int node, double psi, double eta, double gamma);
+
 #endif
 
 
