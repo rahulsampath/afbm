@@ -4,6 +4,9 @@
 
 #include "fatBoundaryUtils.h"
 
+#include <iostream>
+#include <cstdlib>
+
 #include "petscmat.h"
 #include "petscvec.h"
 //------------------------------------------------------
@@ -107,8 +110,8 @@ void createNeumannMatrix_Fat(std::string meshName, Mat petscMat)
 
       system.matrix->close();
 
-      petscMat = (PetscMatrix<Number>*)(system.matrix);
-      petscVec = dynamic_cast<PetscVector<Number>*>(system.rhs);
+      petscMat = (dynamic_cast <PetscMatrix<Number>* > (system.matrix))->mat();
+//      petscVec = (system.rhs)->vec();
 
 }
 
