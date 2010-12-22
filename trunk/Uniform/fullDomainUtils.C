@@ -1,5 +1,7 @@
 
 #include "fullDomainUtils.h"
+#include <iostream>
+#include <cstdlib>
 
 void createNeumannMatrix_Full(DA da, Mat mat) {
 }
