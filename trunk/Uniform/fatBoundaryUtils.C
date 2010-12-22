@@ -3,39 +3,31 @@
 //----------------------------------------------- 
 
 #include "fatBoundaryUtils.h"
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "RefineAlgorithm.h"
-#include "FaceData.h"
-#include "CartesianPatchGeometry.h"
 
 #include "petscmat.h"
 #include "petscvec.h"
-#include "PetscOperator.h"
 //------------------------------------------------------
 // Basic include file needed for the mesh functionality.
 //------------------------------------------------------
 #include "libmesh.h"
 #include "mesh.h"
-#include "mesh_generation.h"
-#include "exodusII_io.h"
-#include "gmv_io.h"
 #include "equation_systems.h"
 #include "fe.h"
 #include "quadrature_gauss.h"
 #include "dof_map.h"
 #include "petsc_matrix.h"
 #include "numeric_vector.h"
+#include "sparse_matrix.h"
 #include "dense_matrix.h"
 #include "dense_vector.h"
 #include "linear_implicit_system.h"
 #include "elem.h"
 
 //create the Poisson Volume Operator
-createNeumannMatrix_Fat(std::string meshName, Mat petscMat);
+void createNeumannMatrix_Fat(std::string meshName, Mat petscMat)
 {
 
-      Mesh fatBoundary;
+      Mesh fatBoundary (3);
 
       fatBoundary.read(meshName);
 
@@ -47,7 +39,7 @@ createNeumannMatrix_Fat(std::string meshName, Mat petscMat);
       system.add_variable ("V", FIRST);
       equation_systems.init ();
 
-      const Mesh & mesh = equation_systems.get_mesh();
+      const MeshBase & mesh = equation_systems.get_mesh();
 
       const unsigned int V_var = system.variable_number ("V");
 
@@ -115,24 +107,24 @@ createNeumannMatrix_Fat(std::string meshName, Mat petscMat);
 
       system.matrix->close();
 
-      petscMat = dynamic_cast<PetscMatrix<Number>*>(system.matrix);
+      petscMat = (PetscMatrix<Number>*)(system.matrix);
       petscVec = dynamic_cast<PetscVector<Number>*>(system.rhs);
 
 }
 
 //DirichletMatrixCorrection
-dirichletMatCorrection_Fat()
+void dirichletMatCorrection_Fat()
 {
 
 }
 
 //DirichletVectorCorrection
-dirichletVecCorrection_Fat()
+void dirichletVecCorrection_Fat()
 {
 }
 
 //ComputeRHSCorrection
-computeRHS_Fat()
+void computeRHS_Fat()
 {
 }
 
