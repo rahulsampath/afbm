@@ -27,12 +27,12 @@
 #include "elem.h"
 
 //create the Poisson Volume Operator
-void createNeumannMatrix_Fat(std::string meshName, Mat & petscMat)
+void createNeumannMatrix_Fat(Mat & petscMat)
 {
 
       Mesh fatBoundary (3);
 
-      fatBoundary.read(meshName);
+      fatBoundary.read("hollowsphere.e");
 
       EquationSystems equation_systems (fatBoundary);
 
