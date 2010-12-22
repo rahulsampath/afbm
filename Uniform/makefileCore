@@ -1,5 +1,5 @@
 
-INCLUDE  = ${PETSC_INCLUDE} \
+INCLUDE = ${PETSC_INCLUDE} \
           -I${LIBMESH_DIR}/include/base \
 	  -I${LIBMESH_DIR}/include/enums \
 	  -I${LIBMESH_DIR}/include/error_estimation \
