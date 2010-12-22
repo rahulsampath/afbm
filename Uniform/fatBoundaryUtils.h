@@ -6,7 +6,7 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
-void createNeumannMatrix_Fat(Mat mat);
+void createNeumannMatrix_Fat(Mat & mat);
 
 void dirichletMatCorrection_Fat();
 
