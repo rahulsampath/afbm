@@ -27,7 +27,7 @@
 #include "elem.h"
 
 //create the Poisson Volume Operator
-void createNeumannMatrix_Fat(std::string meshName, Mat petscMat)
+void createNeumannMatrix_Fat(std::string meshName, Mat & petscMat)
 {
 
       Mesh fatBoundary (3);
@@ -110,7 +110,9 @@ void createNeumannMatrix_Fat(std::string meshName, Mat petscMat)
 
       system.matrix->close();
 
-      petscMat = (dynamic_cast <PetscMatrix<Number>* > (system.matrix))->mat();
+      Mat OriginalMat = (dynamic_cast <PetscMatrix<Number>* > (system.matrix))->mat();
+      PetscErrorCode  ierr;
+      ierr = MatDuplicate( OriginalMat , MAT_COPY_VALUES, &petscMat);
 //      petscVec = (system.rhs)->vec();
 
 }
