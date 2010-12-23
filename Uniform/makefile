@@ -1,12 +1,9 @@
 
 SHELL = /bin/sh
 
-include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
-include ${PETSC_DIR}/conf/variables
+include ${LIBMESH_DIR}/Make.common
 
-CEXT = C
-
-CFLAGS = -O3 
+CXXFLAGS = -O3 
 
 include ./makefileCore
 
