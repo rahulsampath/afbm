@@ -1,29 +1,15 @@
 
-INCLUDE = ${PETSC_INCLUDE} \
-          -I${LIBMESH_DIR}/include/base \
-	  -I${LIBMESH_DIR}/include/enums \
-	  -I${LIBMESH_DIR}/include/error_estimation \
-	  -I${LIBMESH_DIR}/include/fe \
-	  -I${LIBMESH_DIR}/include/geom \
-	  -I${LIBMESH_DIR}/include/mesh \
-	  -I${LIBMESH_DIR}/include/numerics \
-	  -I${LIBMESH_DIR}/include/parallel \
-	  -I${LIBMESH_DIR}/include/partitioning \
-	  -I${LIBMESH_DIR}/include/quadrature \
-	  -I${LIBMESH_DIR}/include/solvers \
-	  -I${LIBMESH_DIR}/include/systems \
-	  -I${LIBMESH_DIR}/include/utils 
+INCLUDE = ${libmesh_INCLUDE} 
 
-
-LIBS = ${PETSC_LIB} ${LIBMESH_DIR}/lib/x86_64-unknown-linux-gnu_dbg/libmesh.a
+LIBS = ${libmesh_LIBS} 
 
 all : driver
 
-%.o: %.$(CEXT)
-	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+%.o: %.C
+	$(libmesh_CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
 
 driver : ./driver.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+	$(libmesh_CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) 
 
 clean :
 	rm -rf driver
