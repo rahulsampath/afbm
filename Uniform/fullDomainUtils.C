@@ -19,6 +19,7 @@ void createNeumannMatrix_Full(DA da, Mat mat) {
       for(int xi = 0; xi < (N - 1); xi++) {
         PetscInt indices[8];
 
+        MatSetValues(mat, 8, indices, 8, indices, stencil, ADD_VALUES);
       }//end for xi
     }//end for yi
   }//end for zi
