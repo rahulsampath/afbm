@@ -5,10 +5,11 @@
 #include "petsc.h"
 #include "petscmat.h"
 #include "petscvec.h"
+#include "linear_implicit_system.h"
 
 void createNeumannMatrix_Fat(Mat & mat);
 
-void dirichletMatCorrection_Fat();
+void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMatrix, MeshBase & mesh);
 
 void dirichletVecCorrection_Fat();
 

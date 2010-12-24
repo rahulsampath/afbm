@@ -120,8 +120,46 @@ void createNeumannMatrix_Fat(Mat & petscMat)
 }
 
 //DirichletMatrixCorrection
-void dirichletMatCorrection_Fat()
+void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMatrix, MeshBase & mesh)
 {
+    MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
+    const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
+
+    const DofMap & dof_map = system.get_dof_map();
+    std::vector<unsigned int> dof_indices;
+
+    for( ; el != end_el; ++el) {
+       const Elem* elem = *el;
+      
+       dof_map.dof_indices (elem, dof_indices);
+
+       const unsigned int n_dofs   = dof_indices.size();
+
+       for(unsigned int s = 0; s < elem->n_sides(); s++) {
+          if ( elem->neighbor(s) == NULL ) {
+            AutoPtr<Elem> side (elem->build_side(s));
+            for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+               for(unsigned int n = 0; n < elem->n_nodes(); n++) {
+                  if( elem->node(n) == side->node(ns) ) { 
+                    for(unsigned int m = 0; m < elem->n_nodes(); m++) {
+                        if(m!=n){
+                        system.matrix->set(dof_indices[m], dof_indices[n], 0.0); 
+                        system.matrix->set(dof_indices[n], dof_indices[m], 0.0);
+//                        MatSetValue ( & stiffnesMatrix, m , n, 0.0);
+//                        MatSetValue ( & stiffnesMatrix, n , m, 0.0);
+                        }
+                      }//end for m
+                    system.matrix->set(dof_indices[n], dof_indices[n], 1.0); 
+//                    MatSetValue ( & stiffnesMatrix, n , n, 1.0);
+                   }
+
+               }//end for n
+           }//end for ns
+         }
+
+        }//end for s
+    }//end for el
+    system.matrix->close();
 
 }
 
