@@ -26,6 +26,8 @@
 #include "linear_implicit_system.h"
 #include "elem.h"
 
+#include "global.h"
+
 //create the Poisson Volume Operator
 void createNeumannMatrix_Fat(Mat & petscMat)
 {
