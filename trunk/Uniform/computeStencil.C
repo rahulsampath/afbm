@@ -1,6 +1,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
 #include <iostream>
 
 double gradPhi(int node, int coord, double psi, double eta, double gamma) {
@@ -131,12 +132,16 @@ int main() {
     }//end for j
   }//end for i
 
+  FILE * fp = fopen("LaplacianStencil.txt", "w");
+
   for(int i = 0; i < 8; i++) {
     for(int j = 0; j < 8; j++) {
-      std::cout<<" "<<mat[i][j]<<",";
+      fprintf(fp, "%.13lf, ", mat[i][j]);
     }//end for j
-    std::cout<<std::endl;
+    fprintf(fp, "\n");
   }//end for i
+
+  fclose(fp);
 
 }
 
