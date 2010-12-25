@@ -227,6 +227,75 @@ void setDirichletValues_Full(DA da, Vec vec) {
   DAGetInfo(da, PETSC_NULL, &N, PETSC_NULL, PETSC_NULL, 
       PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL);
 
+  {
+    //Left
+    int xi = 0;
+    for(int zi = 0; zi < N; zi++) {
+      for(int yi = 0; yi < N; yi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for yi
+    }//end for zi
+  }
+
+  {
+    //Right
+    int xi = N - 1; 
+    for(int zi = 0; zi < N; zi++) {
+      for(int yi = 0; yi < N; yi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for yi
+    }//end for zi
+  }
+
+  {
+    //Front
+    int yi = 0;
+    for(int zi = 0; zi < N; zi++) {
+      for(int xi = 0; xi < N; xi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for xi
+    }//end for zi
+  }
+
+  {
+    //Back
+    int yi = N - 1; 
+    for(int zi = 0; zi < N; zi++) {
+      for(int xi = 0; xi < N; xi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for xi
+    }//end for zi
+  }
+
+  {
+    //Bottom
+    int zi = 0;
+    for(int yi = 0; yi < N; yi++) {
+      for(int xi = 0; xi < N; xi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for xi
+    }//end for yi
+  }
+
+  {
+    //Top
+    int zi = N - 1; 
+    for(int yi = 0; yi < N; yi++) {
+      for(int xi = 0; xi < N; xi++) {
+        int curr = __RG_NODE_ID__(xi, yi, zi, N);
+        VecSetValue(vec, curr, 0.0, INSERT_VALUES);
+      }//end for xi
+    }//end for yi
+  }
+
+  VecAssemblyBegin(vec);
+  VecAssemblyEnd(vec);
+
 }
 
 void computeRHS_Full(DA da, Vec rhs) {
