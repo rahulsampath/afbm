@@ -28,8 +28,6 @@
 
 #include "global.h"
 
-extern double stencil[64];
-
 //create the Poisson Volume Operator
 void createNeumannMatrix_Fat(Mat & petscMat)
 {
