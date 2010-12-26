@@ -25,6 +25,7 @@
 #include "dense_vector.h"
 #include "linear_implicit_system.h"
 #include "elem.h"
+#include "boundary_info.h"
 
 #include "global.h"
 
@@ -216,8 +217,50 @@ void computeRHS_Fat(Mat  & stiffnessMatrix, Vec & dirichletVec)
 }
 
 //get coordinates of the FatBoundary
-void getBoundary_Fat(Vec & fatBnd)
+void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh)
 {
+
+  MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
+  const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
+
+  const DofMap & dof_map = system.get_dof_map();
+  std::vector<unsigned int> dof_indices;
+
+  PetscScalar dirichletValue;
+  int idx;
+
+  for( ; el != end_el; ++el) {
+    const Elem* elem = *el;
+
+    dof_map.dof_indices (elem, dof_indices);
+
+    const unsigned int n_dofs   = dof_indices.size();
+
+    for(unsigned int s = 0; s < elem->n_sides(); s++) {
+      if ( elem->neighbor(s) == NULL ) {
+        AutoPtr<Elem> side (elem->build_side(s));
+
+        const short int bnd_id = mesh.boundary_info.boundary_id (elem, s);
+        if(bnd_id == 2 ){
+
+          for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+
+            Node* node = elem->get_node( ns );
+
+            double px = (*node).x();
+            double py = (*node).y();
+            double pz = (*node).z();
+
+            fatBnd.push_back(px);
+            fatBnd.push_back(py);
+            fatBnd.push_back(pz);
+
+          }
+        }
+      }
+
+    }//end for s
+  }//end for el
 
 }
 
