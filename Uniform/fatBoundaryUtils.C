@@ -240,16 +240,16 @@ void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, M
       if ( elem->neighbor(s) == NULL ) {
         AutoPtr<Elem> side (elem->build_side(s));
 
-        const short int bnd_id = mesh.boundary_info.boundary_id (elem, s);
+        const short int bnd_id = (mesh.boundary_info)->boundary_id (elem, s);
         if(bnd_id == 2 ){
 
           for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
 
             Node* node = elem->get_node( ns );
 
-            double px = (*node).x();
-            double py = (*node).y();
-            double pz = (*node).z();
+            double px = (*node)(0);
+            double py = (*node)(1);
+            double pz = (*node)(2);
 
             fatBnd.push_back(px);
             fatBnd.push_back(py);
