@@ -13,7 +13,11 @@ void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMat
 
 void dirichletVecCorrection_Fat();
 
-void computeRHS_Fat();
+void computeRHS_Fat(Mat  & stiffnesMatrix, Vec & dirichletVec);
+
+void getBoundary_Fat(Vec & fatBnd);
+
+void getDiracFunctions_Fat();
 
 #endif
 
