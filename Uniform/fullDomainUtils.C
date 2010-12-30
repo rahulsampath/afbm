@@ -306,7 +306,7 @@ void computeRHS_Full(DA da, Vec rhs) {
 
 }
 
-double phi(int node, double psi, double eta, double gamma) {
+double phi_Full(int node, double psi, double eta, double gamma) {
 
   double val = 0;
 
@@ -333,6 +333,41 @@ double phi(int node, double psi, double eta, double gamma) {
 
   return val;
 
+}
+
+void phi_Full(double x, double y, double z, int N,
+    std::vector<unsigned int> & indices, std::vector<double> & vals) {
+
+  double h = 1.0/static_cast<double>(N - 1);
+
+  int xi = static_cast<int>(floor(x/h));
+  int yi = static_cast<int>(floor(y/h));
+  int zi = static_cast<int>(floor(z/h));
+
+  double x0 = h*static_cast<double>(xi);
+  double y0 = h*static_cast<double>(yi);
+  double z0 = h*static_cast<double>(zi);
+
+  double psi = (2.0*(x - x0)/h) - 1.0;
+  double eta = (2.0*(y - y0)/h) - 1.0;
+  double gamma = (2.0*(z - z0)/h) - 1.0;
+
+  indices.resize(8);
+
+  indices[0] = __RG_NODE_ID__(xi, yi, zi, N);
+  indices[1] = __RG_NODE_ID__((xi + 1), yi, zi, N);
+  indices[2] = __RG_NODE_ID__(xi, (yi + 1), zi, N);
+  indices[3] = __RG_NODE_ID__((xi + 1), (yi + 1), zi, N);
+  indices[4] = __RG_NODE_ID__(xi, yi, (zi + 1), N);
+  indices[5] = __RG_NODE_ID__((xi + 1), yi, (zi + 1), N);
+  indices[6] = __RG_NODE_ID__(xi, (yi + 1), (zi + 1), N);
+  indices[7] = __RG_NODE_ID__((xi + 1), (yi + 1), (zi + 1), N);
+
+  vals.resize(8);
+
+  for(int node = 0; node < 8; node++) {
+    vals[node] = phi_Full(node, psi, eta, gamma);
+  }
 }
 
 
