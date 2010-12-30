@@ -18,6 +18,8 @@ double phi_Full(int node, double psi, double eta, double gamma);
 void phi_Full(double x, double y, double z, int N,
     std::vector<unsigned int> & indices, std::vector<double> & vals);
 
+double evalFn(double x, double y, double z);
+
 #endif
 
 

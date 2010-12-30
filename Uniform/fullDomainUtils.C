@@ -370,6 +370,17 @@ void phi_Full(double x, double y, double z, int N,
   }
 }
 
+double evalFn(double x, double y, double z) {
 
+  double val = 0.0;
+
+  if ( ( (__SQUARE__(x - __CENTER_X__)) +
+        (__SQUARE__(y - __CENTER_Y__)) +
+        (__SQUARE__(z - __CENTER_Z__)) ) > (__SQUARE__(__RADIUS__)) ) {
+    val = __FN__(x, y, z);
+  }
+
+  return val;
+}
 
 

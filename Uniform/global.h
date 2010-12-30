@@ -2,7 +2,14 @@
 #ifndef __GLOBAL__
 #define __GLOBAL__
 
+#define __SQUARE__(x) ((x)*(x))
+
 #define __FN__(x, y, z) 1.0
+
+#define __CENTER_X__ 0.5
+#define __CENTER_Y__ 0.5
+#define __CENTER_Z__ 0.5
+#define __RADIUS__ 0.0625
 
 #ifdef __MAIN__
 
