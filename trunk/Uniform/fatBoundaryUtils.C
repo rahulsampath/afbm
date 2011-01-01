@@ -88,22 +88,24 @@ void createNeumannMatrix_Fat(Mat & petscMat)
         Ke.resize (n_dofs, n_dofs);
         Fe.resize (n_dofs);
 
-        for (unsigned int qp=0; qp<qrule.n_points(); qp++)
+        for (unsigned int qp = 0; qp < qrule.n_points(); qp++)
         {
 
-          const Real x = q_point[qp](0);
-          const Real y = q_point[qp](1);
-          const Real z = q_point[qp](2);
+          const Real x = __CENTER_X__ + q_point[qp](0);
+          const Real y = __CENTER_Y__ + q_point[qp](1);
+          const Real z = __CENTER_Z__ + q_point[qp](2);
 
           // Assemble the Poisson Operator equation 
-          for (unsigned int i=0; i<n_dofs; i++)
-            for (unsigned int j=0; j<n_dofs; j++)
-              Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp]);
+          for (unsigned int i = 0; i < n_dofs; i++) {
+            for (unsigned int j = 0; j < n_dofs; j++) {
+              Ke(i,j) += (JxW[qp]*dphi[i][qp]*dphi[j][qp]);
+            }
+          }
 
           // Build the element right hand side
-          for (unsigned int i=0; i<phi.size(); i++)
-            Fe(i) += JxW[qp]*phi[i][qp];
-
+          for (unsigned int i = 0; i < phi.size(); i++) {
+            Fe(i) += (__FN__(x, y, z)*JxW[qp]*phi[i][qp]);
+          }
 
         } // end of the quadrature point qp-loop
 
