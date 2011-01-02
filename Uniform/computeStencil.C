@@ -122,13 +122,13 @@ int main() {
   for(int i = 0; i < 8; i++) {
     for(int j = 0; j < 8; j++) {
       mat[i][j] = 0.0;
-      for(int m = 0; m < 2; m++) {
+      for(int p = 0; p < 2; p++) {
         for(int n = 0; n < 2; n++) {
-          for(int p = 0; p < 2; p++) {
+          for(int m = 0; m < 2; m++) {
             mat[i][j] += integrand(i, j, gPt[m], gPt[n], gPt[p]);
-          }//end for p
+          }//end for m
         }//end for n
-      }//end for m
+      }//end for p
     }//end for j
   }//end for i
 
