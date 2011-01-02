@@ -59,7 +59,7 @@ void computeRHSterm1_Full(DA da, Vec vec) {
     for(int yi = 0; yi < (N - 1); yi++) {
       double y0 = h*static_cast<double>(yi);
       for(int xi = 0; xi < (N - 1); xi++) {
-        double x0 = (h*static_cast<double>(xi));
+        double x0 = h*static_cast<double>(xi);
         PetscInt indices[8];
         indices[0] = __RG_NODE_ID__(xi, yi, zi, N);
         indices[1] = __RG_NODE_ID__((xi + 1), yi, zi, N);
@@ -72,11 +72,16 @@ void computeRHSterm1_Full(DA da, Vec vec) {
         for(int node = 0; node < 8; node++) {
           double val = 0.0;
           for(int p = 0; p < 3; p++) {
+            double z = z0 + (0.5*h*(1.0 + gPt[p]));
             for(int n = 0; n < 3; n++) {
+              double y = y0 + (0.5*h*(1.0 + gPt[n]));
               for(int m = 0; m < 3; m++) {
+                double x = x0 + (0.5*h*(1.0 + gPt[m]));
+                val += (gWt[m]*gWt[n]*gWt[p]*evalFn(x, y, z)*phi_Full(node, gPt[m], gPt[n], gPt[p]));
               }//end for m
             }//end for n
           }//end for p
+          VecSetValue(vec, indices[node], val, ADD_VALUES);
         }//end for node
       }//end for xi
     }//end for yi
