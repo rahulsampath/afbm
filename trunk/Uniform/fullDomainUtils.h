@@ -11,7 +11,7 @@ void applyDirichletMatrixCorrection_Full(DA da, Mat mat);
 
 void setDirichletValues_Full(DA da, Vec vec);
 
-void computeRHS_Full(DA da, Vec rhs);
+void computeRHSterm1_Full(DA da, Vec vec);
 
 double phi_Full(int node, double psi, double eta, double gamma);
 
