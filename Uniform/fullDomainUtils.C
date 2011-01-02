@@ -42,6 +42,53 @@ void createNeumannMatrix_Full(DA da, Mat mat) {
 
 }
 
+void computeRHSterm1_Full(DA da, Vec vec) {
+
+  PetscInt N;
+  DAGetInfo(da, PETSC_NULL, &N, PETSC_NULL, PETSC_NULL, 
+      PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL);
+  double h = 1.0/(static_cast<double>(N) - 1.0);
+
+  double gPt[] = { 0,  (sqrt(15.0)/5.0), (-sqrt(15.0)/5.0) };
+  double gWt[] = { (8.0/9.0), (5.0/9.0), (5.0/9.0) };
+
+  VecZeroEntries(vec);
+
+  for(int zi = 0; zi < (N - 1); zi++) {
+    double z0 = h*static_cast<double>(zi);
+    for(int yi = 0; yi < (N - 1); yi++) {
+      double y0 = h*static_cast<double>(yi);
+      for(int xi = 0; xi < (N - 1); xi++) {
+        double x0 = (h*static_cast<double>(xi));
+        PetscInt indices[8];
+        indices[0] = __RG_NODE_ID__(xi, yi, zi, N);
+        indices[1] = __RG_NODE_ID__((xi + 1), yi, zi, N);
+        indices[2] = __RG_NODE_ID__(xi, (yi + 1), zi, N);
+        indices[3] = __RG_NODE_ID__((xi + 1), (yi + 1), zi, N);
+        indices[4] = __RG_NODE_ID__(xi, yi, (zi + 1), N);
+        indices[5] = __RG_NODE_ID__((xi + 1), yi, (zi + 1), N);
+        indices[6] = __RG_NODE_ID__(xi, (yi + 1), (zi + 1), N);
+        indices[7] = __RG_NODE_ID__((xi + 1), (yi + 1), (zi + 1), N);
+        for(int node = 0; node < 8; node++) {
+          double val = 0.0;
+          for(int p = 0; p < 3; p++) {
+            for(int n = 0; n < 3; n++) {
+              for(int m = 0; m < 3; m++) {
+              }//end for m
+            }//end for n
+          }//end for p
+        }//end for node
+      }//end for xi
+    }//end for yi
+  }//end for zi
+
+  VecAssemblyBegin(vec);
+  VecAssemblyEnd(vec);
+
+  VecScale(vec, (h*h*h/8.0));
+
+}
+
 void applyDirichletMatrixCorrection_Full(DA da, Mat mat) {
 
   PetscInt N;
@@ -295,14 +342,6 @@ void setDirichletValues_Full(DA da, Vec vec) {
 
   VecAssemblyBegin(vec);
   VecAssemblyEnd(vec);
-
-}
-
-void computeRHS_Full(DA da, Vec rhs) {
-
-  PetscInt N;
-  DAGetInfo(da, PETSC_NULL, &N, PETSC_NULL, PETSC_NULL, 
-      PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL, PETSC_NULL);
 
 }
 
