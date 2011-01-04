@@ -17,7 +17,7 @@ void computeRHS_Fat(Mat  & stiffnesMatrix, Vec & dirichletVec);
 
 void getBoundary_Fat(Vec & fatBnd);
 
-void getDiracFunctions_Fat();
+void getDiracFunctions_Fat(LinearImplicitSystem& system, std::vector<double> solVec, std::vector<double> rhs, MeshBase & mesh);
 
 #endif
 
