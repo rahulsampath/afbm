@@ -239,23 +239,23 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
 
   const unsigned int V_var = system.variable_number ("V");
 
-  FEType fe_temp_type = system.variable_type(V_var);
+  FEType fe_face_type = system.variable_type(V_var);
 
-  AutoPtr<FEBase> fe_temp  (FEBase::build(2, fe_temp_type));
+  AutoPtr<FEBase> fe_face  (FEBase::build(3, fe_face_type));
 
-  QGauss qrule (2, fe_temp_type.default_quadrature_order());
+  QGauss qrule (2, fe_face_type.default_quadrature_order());
 
-  fe_temp->attach_quadrature_rule (&qrule);
+  fe_face->attach_quadrature_rule (&qrule);
 
-  const std::vector<Real>& JxW = fe_temp->get_JxW();
+  const std::vector<Real>& JxW = fe_face->get_JxW();
 
-  const std::vector<Point>& q_point = fe_temp->get_xyz();
+  const std::vector<Point>& q_point = fe_face->get_xyz();
 
-  const std::vector<std::vector<RealGradient> >& dphi = fe_temp->get_dphi();
+  const std::vector<std::vector<RealGradient> >& dphi = fe_face->get_dphi();
 
   const DofMap & dof_map = system.get_dof_map();
 
-  const std::vector<Point>& face_normal = (fe_temp->get_normals());
+  const std::vector<Point>& face_normal = (fe_face->get_normals());
 
   std::vector<unsigned int> dof_indices;
   int idx, N;
@@ -268,14 +268,16 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
   for( ; el != end_el; ++el) {
 
     const Elem* elem = *el;
+
     dof_map.dof_indices (elem, dof_indices);
     const unsigned int n_dofs   = dof_indices.size();
 
     for(unsigned int s = 0; s < elem->n_sides(); s++) {
-      AutoPtr<Elem> side (elem->build_side(s));
+      
+      fe_face->reinit(elem, s);
 
       const short int bnd_id = (mesh.boundary_info)->boundary_id (elem, s);
-      if(  elem->neighbor(s) == NULL &&  bnd_id == 2 ){
+      if(  bnd_id == 2 ){
 
         for(unsigned int qp = 0; qp < qrule.n_points(); qp++) 
         {
