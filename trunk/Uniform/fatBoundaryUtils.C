@@ -3,6 +3,7 @@
 //----------------------------------------------- 
 
 #include "fatBoundaryUtils.h"
+#include "fullDomainUtils.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -148,14 +149,11 @@ void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMat
             if( elem->node(n) == side->node(ns) ) { 
               for(unsigned int m = 0; m < elem->n_nodes(); m++) {
                 if(m!=n){
-                  system.matrix->set(dof_indices[m], dof_indices[n], 0.0); 
-                  system.matrix->set(dof_indices[n], dof_indices[m], 0.0);
-                  //                        MatSetValue ( & stiffnesMatrix, m , n, 0.0);
-                  //                        MatSetValue ( & stiffnesMatrix, n , m, 0.0);
+                    MatSetValue ( stiffnesMatrix, m , n, 0.0, INSERT_VALUES);
+                    MatSetValue ( stiffnesMatrix, n , m, 0.0, INSERT_VALUES);
                 }
               }//end for m
-              system.matrix->set(dof_indices[n], dof_indices[n], 1.0);
-              //                    MatSetValue ( & stiffnesMatrix, n , n, 1.0);
+                MatSetValue ( stiffnesMatrix, n , n, 1.0, INSERT_VALUES);
             }
 
           }//end for n
@@ -222,8 +220,8 @@ void computeRHS_Fat(Mat  & stiffnessMatrix, Vec & dirichletVec)
 void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh)
 {
 
-  MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
-  const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
+  MeshBase::const_node_iterator       node     = mesh.local_nodes_begin();
+  const MeshBase::const_node_iterator end_node = mesh.local_nodes_end(); 
 
   const DofMap & dof_map = system.get_dof_map();
   std::vector<unsigned int> dof_indices;
@@ -231,42 +229,93 @@ void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, M
   PetscScalar dirichletValue;
   int idx;
 
+}
+
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs, MeshBase & mesh)
+{
+
+  MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
+  const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
+
+  const unsigned int V_var = system.variable_number ("V");
+
+  FEType fe_temp_type = system.variable_type(V_var);
+
+  AutoPtr<FEBase> fe_temp  (FEBase::build(2, fe_temp_type));
+
+  QGauss qrule (2, fe_temp_type.default_quadrature_order());
+
+  fe_temp->attach_quadrature_rule (&qrule);
+
+  const std::vector<Real>& JxW = fe_temp->get_JxW();
+
+  const std::vector<Point>& q_point = fe_temp->get_xyz();
+
+  const std::vector<std::vector<RealGradient> >& dphi = fe_temp->get_dphi();
+
+  const DofMap & dof_map = system.get_dof_map();
+
+  const std::vector<Point>& face_normal = (fe_temp->get_normals());
+
+  std::vector<unsigned int> dof_indices;
+  int idx, N;
+  std::vector<unsigned int> indices;
+  std::vector<double> vals;
+  PetscScalar solValue;
+
   for( ; el != end_el; ++el) {
+
     const Elem* elem = *el;
-
     dof_map.dof_indices (elem, dof_indices);
-
     const unsigned int n_dofs   = dof_indices.size();
 
     for(unsigned int s = 0; s < elem->n_sides(); s++) {
-      if ( elem->neighbor(s) == NULL ) {
-        AutoPtr<Elem> side (elem->build_side(s));
+      AutoPtr<Elem> side (elem->build_side(s));
 
-        const short int bnd_id = (mesh.boundary_info)->boundary_id (elem, s);
-        if(bnd_id == 2 ){
+      const short int bnd_id = (mesh.boundary_info)->boundary_id (elem, s);
+      if(  elem->neighbor(s) == NULL &&  bnd_id == 2 ){
 
-          for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
 
-            Node* node = elem->get_node( ns );
+          Node* node = elem->get_node( ns );
 
-            double px = (*node)(0);
-            double py = (*node)(1);
-            double pz = (*node)(2);
+          for(unsigned int qp = 0; qp < qrule.n_points(); qp++) 
+          {
+            double px = (q_point)(0);
+            double py = (q_point)(1);
+            double pz = (q_point)(2);
 
-            fatBnd.push_back(px);
-            fatBnd.push_back(py);
-            fatBnd.push_back(pz);
+            px = px + __CENTER_X__;
+            py = py + __CENTER_Y__;
+            pz = pz + __CENTER_z__;
+            phi_Full(px, py, pz, N, indices, vals);
 
-          }
-        }
-      }
+            for (unsigned int j=0; j<indices.size(); j++)
+            {
+              double dVdx = 0.;
+              double dVdy = 0.;
+              double dVdz = 0;
+              double dVdn = 0;
 
-    }//end for s
-  }//end for el
+              for (unsigned int l=0; l<dphi.size(); l++)
+              {
 
-}
+                idx = dof_indices[l];
+                VecGetValues( solVec, 1 , &idx , &solValue );
+                dVdx +=  dphi[l][qp](0)*solVec[idx];
+                dVdy +=  dphi[l][qp](1)*solVec[idx];
+                dVdz +=  dphi[l][qp](2)*solVec[idx];
 
-void getDiracFunctions_Fat()
-{
+              }
 
+              dVdn  = (dVdx*face_normal[qp](0) + dVdy*face_normal[qp](1) + dVdz*face_normal[qp](2) )*vals[j]*JxW[qp];
+              VecSetValue(rhs, indices[j], dVdn , INSERT_VALUES);
+            }//full domain indices
+          }//quadrature points
+        }//side node iterator
+
+      }// interior fat boundary
+
+    }//elem side iterator
+  }// elem iterator
 }
