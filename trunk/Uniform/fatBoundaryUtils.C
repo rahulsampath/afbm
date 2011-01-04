@@ -263,6 +263,8 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
   std::vector<double> vals;
   PetscScalar solValue;
 
+  VecZeroEntries(rhs);
+
   for( ; el != end_el; ++el) {
 
     const Elem* elem = *el;
@@ -275,44 +277,39 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
       const short int bnd_id = (mesh.boundary_info)->boundary_id (elem, s);
       if(  elem->neighbor(s) == NULL &&  bnd_id == 2 ){
 
-        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+        for(unsigned int qp = 0; qp < qrule.n_points(); qp++) 
+        {
+          double px = q_point[qp](0);
+          double py = q_point[qp](1);
+          double pz = q_point[qp](2);
 
-          Node* node = elem->get_node( ns );
+          px = px + __CENTER_X__;
+          py = py + __CENTER_Y__;
+          pz = pz + __CENTER_Z__;
+          phi_Full(px, py, pz, N, indices, vals);
 
-          for(unsigned int qp = 0; qp < qrule.n_points(); qp++) 
+          for (unsigned int j=0; j<indices.size(); j++)
           {
-            double px = (q_point)(0);
-            double py = (q_point)(1);
-            double pz = (q_point)(2);
+            double dVdx = 0.;
+            double dVdy = 0.;
+            double dVdz = 0;
+            double dVdn = 0;
 
-            px = px + __CENTER_X__;
-            py = py + __CENTER_Y__;
-            pz = pz + __CENTER_z__;
-            phi_Full(px, py, pz, N, indices, vals);
-
-            for (unsigned int j=0; j<indices.size(); j++)
+            for (unsigned int l=0; l<dphi.size(); l++)
             {
-              double dVdx = 0.;
-              double dVdy = 0.;
-              double dVdz = 0;
-              double dVdn = 0;
 
-              for (unsigned int l=0; l<dphi.size(); l++)
-              {
+              idx = dof_indices[l];
+              VecGetValues( solVec, 1 , &idx , &solValue );
+              dVdx +=  dphi[l][qp](0)*solValue;
+              dVdy +=  dphi[l][qp](1)*solValue;
+              dVdz +=  dphi[l][qp](2)*solValue;
 
-                idx = dof_indices[l];
-                VecGetValues( solVec, 1 , &idx , &solValue );
-                dVdx +=  dphi[l][qp](0)*solVec[idx];
-                dVdy +=  dphi[l][qp](1)*solVec[idx];
-                dVdz +=  dphi[l][qp](2)*solVec[idx];
+            }
 
-              }
-
-              dVdn  = (dVdx*face_normal[qp](0) + dVdy*face_normal[qp](1) + dVdz*face_normal[qp](2) )*vals[j]*JxW[qp];
-              VecSetValue(rhs, indices[j], dVdn , INSERT_VALUES);
-            }//full domain indices
-          }//quadrature points
-        }//side node iterator
+            dVdn  = (dVdx*face_normal[qp](0) + dVdy*face_normal[qp](1) + dVdz*face_normal[qp](2) )*vals[j]*JxW[qp];
+            VecSetValue(rhs, indices[j], dVdn , ADD_VALUES);
+          }//full domain indices
+        }//quadrature points
 
       }// interior fat boundary
 
