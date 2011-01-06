@@ -20,6 +20,8 @@ void phi_Full(double x, double y, double z, int N,
 
 double evalFn(double x, double y, double z);
 
+double interpolateAtPt(Vec vec, int N, double x, double y, double z);
+
 #endif
 
 

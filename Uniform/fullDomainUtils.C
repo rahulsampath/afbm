@@ -427,4 +427,47 @@ double evalFn(double x, double y, double z) {
   return val;
 }
 
+double interpolateAtPt(Vec vec, int N, double x, double y, double z) {
+
+  double h = 1.0/static_cast<double>(N - 1);
+
+  int xi = static_cast<int>(floor(x/h));
+  int yi = static_cast<int>(floor(y/h));
+  int zi = static_cast<int>(floor(z/h));
+
+  double x0 = h*static_cast<double>(xi);
+  double y0 = h*static_cast<double>(yi);
+  double z0 = h*static_cast<double>(zi);
+
+  double psi = (2.0*(x - x0)/h) - 1.0;
+  double eta = (2.0*(y - y0)/h) - 1.0;
+  double gamma = (2.0*(z - z0)/h) - 1.0;
+
+  unsigned int indices[8];
+
+  indices[0] = __RG_NODE_ID__(xi, yi, zi, N);
+  indices[1] = __RG_NODE_ID__((xi + 1), yi, zi, N);
+  indices[2] = __RG_NODE_ID__(xi, (yi + 1), zi, N);
+  indices[3] = __RG_NODE_ID__((xi + 1), (yi + 1), zi, N);
+  indices[4] = __RG_NODE_ID__(xi, yi, (zi + 1), N);
+  indices[5] = __RG_NODE_ID__((xi + 1), yi, (zi + 1), N);
+  indices[6] = __RG_NODE_ID__(xi, (yi + 1), (zi + 1), N);
+  indices[7] = __RG_NODE_ID__((xi + 1), (yi + 1), (zi + 1), N);
+
+  PetscScalar *arr;
+
+  VecGetArray(vec, &arr);
+
+  double val = 0.0;
+
+  for(int node = 0; node < 8; node++) {
+    val += (arr[indices[node]]*phi_Full(node, psi, eta, gamma));
+  }
+
+  VecRestoreArray(vec, &arr);
+
+  return val;
+}
+
+
 
