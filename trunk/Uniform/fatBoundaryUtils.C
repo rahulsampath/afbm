@@ -33,21 +33,8 @@
 #include "global.h"
 
 //create the Poisson Volume Operator
-void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec) {
-
-  Mesh fatBoundary (3);
-
-  fatBoundary.read("hollowsphere.e");
-
-  EquationSystems equation_systems (fatBoundary);
-
-  LinearImplicitSystem & system = 
-    equation_systems.add_system<LinearImplicitSystem> ("Poisson");
-
-  system.add_variable ("V", FIRST);
-  equation_systems.init ();
-
-  const MeshBase & mesh = equation_systems.get_mesh();
+void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec, 
+    LinearImplicitSystem & system, const DofMap & dof_map, MeshBase & mesh) {
 
   const unsigned int V_var = system.variable_number ("V");
 
@@ -66,8 +53,6 @@ void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec) {
   const std::vector<std::vector<RealGradient> >& dphi = fe_temp->get_dphi();
 
   const std::vector<std::vector<Real> >& phi = fe_temp->get_phi();
-
-  const DofMap & dof_map = system.get_dof_map();
 
   DenseMatrix<Number> Ke;
   DenseVector<Number> Fe;
