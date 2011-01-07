@@ -7,17 +7,21 @@
 #include "petscvec.h"
 #include "linear_implicit_system.h"
 
-void createNeumannMatrix_Fat(Mat & mat);
+void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec);
 
-void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMatrix, MeshBase & mesh);
+void dirichletMatCorrection_Fat(Mat mat, const DofMap & dof_map, MeshBase & mesh, const int bnd_id);
 
-void dirichletVecCorrection_Fat();
+void dirichletVecSetCorrection1_Fat(Vec dirichletVec, const DofMap & dof_map, MeshBase & mesh);
 
-void computeRHS_Fat(Mat  & stiffnessMatrix, Vec & rhsVec,const DofMap & dof_map, MeshBase & mesh, const int bnd_id);
+void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int N,
+    const DofMap & dof_map, MeshBase & mesh);
 
-void getBoundary_Fat(Vec & fatBnd);
+void dirichletVecAddCorrection2_Fat(Mat & stiffnessMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
+    const DofMap & dof_map, MeshBase & mesh);
 
-void getDiracFunctions_Fat(LinearImplicitSystem& system, std::vector<double> solVec, std::vector<double> rhs, MeshBase & mesh);
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs, MeshBase & mesh);
+
+void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh);
 
 #endif
 
