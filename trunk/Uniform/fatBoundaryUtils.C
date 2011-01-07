@@ -1,3 +1,4 @@
+
 //----------------------------------------------- 
 // AFBM Unstructured Poisson - Rahul & Srikanth  
 //----------------------------------------------- 
@@ -20,6 +21,7 @@
 #include "quadrature_gauss.h"
 #include "dof_map.h"
 #include "petsc_matrix.h"
+#include "petsc_vector.h"
 #include "numeric_vector.h"
 #include "sparse_matrix.h"
 #include "dense_matrix.h"
@@ -31,8 +33,7 @@
 #include "global.h"
 
 //create the Poisson Volume Operator
-void createNeumannMatrix_Fat(Mat & petscMat)
-{
+void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec) {
 
   Mesh fatBoundary (3);
 
@@ -115,171 +116,134 @@ void createNeumannMatrix_Fat(Mat & petscMat)
   } // end of element loop
 
   system.matrix->close();
+  system.rhs->close();
 
   Mat OriginalMat = (dynamic_cast <PetscMatrix<Number>* > (system.matrix))->mat();
-  PetscErrorCode  ierr;
-  ierr = MatDuplicate( OriginalMat , MAT_COPY_VALUES, &petscMat);
-  //      petscVec = (system.rhs)->vec();
+  MatDuplicate( OriginalMat , MAT_COPY_VALUES, &petscMat);
+
+  Vec OriginalVec = (dynamic_cast <PetscVector<Number>* > (system.rhs))->vec();
+  VecDuplicate(OriginalVec, &petscVec);
+  VecCopy(OriginalVec, petscVec);
 
 }
 
 //DirichletMatrixCorrection
-void dirichletMatCorrection_Fat(LinearImplicitSystem& system , Mat & stiffnesMatrix, MeshBase & mesh)
+void dirichletMatCorrection_Fat(Mat mat, const DofMap & dof_map, MeshBase & mesh, const int bnd_id)
 {
 
   MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
   const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
 
-  const DofMap & dof_map = system.get_dof_map();
   std::vector<unsigned int> dof_indices;
 
   for( ; el != end_el; ++el) {
     const Elem* elem = *el;
-
     dof_map.dof_indices (elem, dof_indices);
-
     const unsigned int n_dofs   = dof_indices.size();
-
     for(unsigned int s = 0; s < elem->n_sides(); s++) {
-      if ( elem->neighbor(s) == NULL ) {
+      const short int side_id = (mesh.boundary_info)->boundary_id (elem, s);
+      if ( side_id == bnd_id ) {
         AutoPtr<Elem> side (elem->build_side(s));
         for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
           for(unsigned int n = 0; n < elem->n_nodes(); n++) {
-
             if( elem->node(n) == side->node(ns) ) { 
               for(unsigned int m = 0; m < elem->n_nodes(); m++) {
                 if(m!=n){
-                  MatSetValue ( stiffnesMatrix, m , n, 0.0, INSERT_VALUES);
-                  MatSetValue ( stiffnesMatrix, n , m, 0.0, INSERT_VALUES);
+                  MatSetValue ( mat, m , n, 0.0, INSERT_VALUES);
+                  MatSetValue ( mat, n , m, 0.0, INSERT_VALUES);
                 }
               }//end for m
-              MatSetValue ( stiffnesMatrix, n , n, 1.0, INSERT_VALUES);
+              MatSetValue ( mat, n , n, 1.0, INSERT_VALUES);
             }
-
           }//end for n
         }//end for ns
       }
-
     }//end for s
   }//end for el
-  system.matrix->close();
+
+  MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
 
 }
 
-//DirichletVectorCorrection
-void dirichletVecCorrection_Fat( Vec dirichletVec,  const DofMap & dof_map, MeshBase & mesh, const int bnd_id)
+void dirichletVecAddCorrection2_Fat(Mat & stiffnessMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
+    const DofMap & dof_map, MeshBase & mesh)
 {
+  Vec dirichletVec;
+  VecDuplicate( correctionVec, &dirichletVec ); 
+
+  VecZeroEntries(dirichletVec);
+
+  dirichletVecSetCorrection2_Fat( dirichletVec, FullDomainSolutionVec, N, dof_map, mesh);
+
+  MatMult( stiffnessMatrix, dirichletVec, correctionVec );
+
+  VecScale(correctionVec, -1.0);
+
+  VecDestroy(dirichletVec);
+}
+
+void dirichletVecSetCorrection1_Fat(Vec dirichletVec, const DofMap & dof_map, MeshBase & mesh) {
 
   MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
   const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
 
   std::vector<unsigned int> dof_indices;
 
-  double dirichletValue;
-  int idx, N;
-  Vec vec;
-
-  for( ; el != end_el; ++el) {
-    const Elem* elem = *el;
-
-    dof_map.dof_indices (elem, dof_indices);
-
-    const unsigned int n_dofs   = dof_indices.size();
-
-    for(unsigned int s = 0; s < elem->n_sides(); s++) {
-
-      const short int side_id = (mesh.boundary_info)->boundary_id (elem, s);
-
-      if ( elem->neighbor(s) == NULL && side_id == bnd_id ) {
-        AutoPtr<Elem> side (elem->build_side(s));
-        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
-          const Node* node = side->get_node(ns);
-          double x = __CENTER_X__ + (*node)(0);
-          double y = __CENTER_Y__ + (*node)(1);
-          double z = __CENTER_Z__ + (*node)(2);
-          dirichletValue = interpolateAtPt(vec, N, x, y, z) ;
-          VecSetValue(dirichletVec, dof_indices[ns], dirichletValue , INSERT_VALUES);
-
-        }//end for ns
-      } else if ( elem->neighbor(s) == NULL && side_id == bnd_id ) {
-        AutoPtr<Elem> side (elem->build_side(s));
-        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
-          const Node* node = side->get_node(ns);
-          double x = __CENTER_X__ + (*node)(0);
-          double y = __CENTER_Y__ + (*node)(1);
-          double z = __CENTER_Z__ + (*node)(2);
-          dirichletValue = interpolateAtPt(vec, N, x, y, z) ;
-          VecSetValue(dirichletVec, dof_indices[ns], dirichletValue , INSERT_VALUES);
-
-        }//end for ns
-
-      }
-
-    }//end for s
-  }//end for el
-
-}
-
-//ComputeRHSCorrection
-void computeRHS_Fat(Mat  & stiffnessMatrix, Vec & correctionVec, const DofMap & dof_map, MeshBase & mesh, const int bnd_id)
-{
-  MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
-  const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
-
-  std::vector<unsigned int> dof_indices;
-
-  Vec* dirichletVec;
-  VecDuplicate( correctionVec, dirichletVec ); 
-
-  double dirichletValue;
-  int idx, N;
-  Vec vec;
-
-  for( ; el != end_el; ++el) {
-    const Elem* elem = *el;
-
-    dof_map.dof_indices (elem, dof_indices);
-
-    const unsigned int n_dofs   = dof_indices.size();
-
-    for(unsigned int s = 0; s < elem->n_sides(); s++) {
-
-      const short int side_id = (mesh.boundary_info)->boundary_id (elem, s);
-      if ( elem->neighbor(s) == NULL && side_id == bnd_id ) {
-
-        AutoPtr<Elem> side (elem->build_side(s));
-
-        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
-          const Node* node = side->get_node(ns);
-          double x = __CENTER_X__ + (*node)(0);
-          double y = __CENTER_Y__ + (*node)(1);
-          double z = __CENTER_Z__ + (*node)(2);
-          dirichletValue = interpolateAtPt(vec, N, x, y, z) ;
-          VecSetValue(* dirichletVec, dof_indices[ns], dirichletValue , INSERT_VALUES);
-        }//end for ns
-      }
-
-    }//end for s
-  }//end for el
-
-  VecAssemblyBegin(* dirichletVec);
-  VecAssemblyEnd(* dirichletVec);
-
-  MatMult( stiffnessMatrix, *dirichletVec, correctionVec );
-}
-
-//get coordinates of the FatBoundary
-void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh)
-{
-
-  MeshBase::const_node_iterator       node     = mesh.local_nodes_begin();
-  const MeshBase::const_node_iterator end_node = mesh.local_nodes_end(); 
-
-  const DofMap & dof_map = system.get_dof_map();
-  std::vector<unsigned int> dof_indices;
-
-  PetscScalar dirichletValue;
   int idx;
+
+  for( ; el != end_el; ++el) {
+    const Elem* elem = *el;
+    dof_map.dof_indices (elem, dof_indices);
+    const unsigned int n_dofs   = dof_indices.size();
+    for(unsigned int s = 0; s < elem->n_sides(); s++) {
+      const short int side_id = (mesh.boundary_info)->boundary_id (elem, s);
+      if ( side_id == 1 ) {
+        AutoPtr<Elem> side (elem->build_side(s));
+        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+          VecSetValue(dirichletVec, dof_indices[ns], 0.0 , INSERT_VALUES);
+        }//end for ns
+      }
+    }//end for s
+  }//end for el
+
+  VecAssemblyBegin(dirichletVec);
+  VecAssemblyEnd(dirichletVec);
+
+}
+
+void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int N,
+    const DofMap & dof_map, MeshBase & mesh) {
+
+  MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
+  const MeshBase::const_element_iterator end_el = mesh.local_elements_end(); 
+
+  std::vector<unsigned int> dof_indices;
+
+  int idx;
+
+  for( ; el != end_el; ++el) {
+    const Elem* elem = *el;
+    dof_map.dof_indices (elem, dof_indices);
+    const unsigned int n_dofs   = dof_indices.size();
+    for(unsigned int s = 0; s < elem->n_sides(); s++) {
+      const short int side_id = (mesh.boundary_info)->boundary_id (elem, s);
+      if ( side_id == 2 ) {
+        AutoPtr<Elem> side (elem->build_side(s));
+        for(unsigned int ns = 0; ns < side->n_nodes(); ns++) {
+          const Node* node = side->get_node(ns);
+          double x = __CENTER_X__ + (*node)(0);
+          double y = __CENTER_Y__ + (*node)(1);
+          double z = __CENTER_Z__ + (*node)(2);
+          double dirichletValue = interpolateAtPt(FullDomainSolVec, N, x, y, z) ;
+          VecSetValue(dirichletVec, dof_indices[ns], dirichletValue , INSERT_VALUES);
+        }//end for ns
+      }
+    }//end for s
+  }//end for el
+
+  VecAssemblyBegin(dirichletVec);
+  VecAssemblyEnd(dirichletVec);
 
 }
 
@@ -370,4 +334,19 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
 
 }
 
+
+//get coordinates of the FatBoundary
+void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh)
+{
+
+  MeshBase::const_node_iterator       node     = mesh.local_nodes_begin();
+  const MeshBase::const_node_iterator end_node = mesh.local_nodes_end(); 
+
+  const DofMap & dof_map = system.get_dof_map();
+  std::vector<unsigned int> dof_indices;
+
+  PetscScalar dirichletValue;
+  int idx;
+
+}
 
