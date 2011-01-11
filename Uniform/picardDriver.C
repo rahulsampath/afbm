@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
   PetscOptionsGetInt(0, "-N", &N, 0);
 
   DA da;
-  DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, N, N, N, PETSC_DECIDE, PETSC_DECIDE, PETSC_DECIDE, 1, 1, PETSC_NULL, PETSC_NULL, PETSC_NULL, &da);
+  DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, N, N, N,
+      PETSC_DECIDE, PETSC_DECIDE, PETSC_DECIDE, 1, 1, PETSC_NULL, PETSC_NULL, PETSC_NULL, &da);
 
   PetscInt nlevels = 1;
   PetscOptionsGetInt(0, "-dmmg_nlevels", &nlevels, 0);
@@ -45,8 +46,10 @@ int main(int argc, char** argv) {
   DMMGSetDM(dmmg, (DM) da);
 
   //Create Full Domain solution vector (Initial Guess)
-  Vec solVecFull;
-  Vec rhsVecFull;
+  Vec solVecFull = DMMGGetx(dmmg);
+  Vec rhsVecFull = DMMGGetRHS(dmmg);
+
+  VecZeroEntries(solVecFull);
 
   //Compute base RHS vec for full domain
 
