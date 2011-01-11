@@ -1,5 +1,6 @@
 
 #include "petsc.h"
+#include "petscdmmg.h"
 
 #include "fullDomainUtils.h"
 #include "fatBoundaryUtils.h"
@@ -30,8 +31,18 @@ int main(int argc, char** argv) {
   MeshBase & mesh = equation_systems.get_mesh();
 
   //Init stuff for Full domain (Create DA/DMMG) 
-  PetscInt N;
+  PetscInt N = 17;
   PetscOptionsGetInt(0, "-N", &N, 0);
+
+  DA da;
+  DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, N, N, N, PETSC_DECIDE, PETSC_DECIDE, PETSC_DECIDE, 1, 1, PETSC_NULL, PETSC_NULL, PETSC_NULL, &da);
+
+  PetscInt nlevels = 1;
+  PetscOptionsGetInt(0, "-dmmg_nlevels", &nlevels, 0);
+
+  DMMG* dmmg;
+  DMMGCreate(MPI_COMM_WORLD, nlevels, NULL, &dmmg);
+  DMMGSetDM(dmmg, (DM) da);
 
   //Create Full Domain solution vector (Initial Guess)
   Vec solVecFull;
@@ -67,6 +78,9 @@ int main(int argc, char** argv) {
     //Solve Full domain
 
   }//end for Picar block
+
+  DMMGDestroy(dmmg);
+  DADestroy(da);
 
   PetscFinalize();
 

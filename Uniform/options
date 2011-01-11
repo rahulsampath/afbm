@@ -1,6 +1,7 @@
 
  -N 65
 
- -dmmg_refine 0
+ -dmmg_refine false
  -dmmg_nlevels 3
+ -pc_mg_galerkin false
 
