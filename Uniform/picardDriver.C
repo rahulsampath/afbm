@@ -46,12 +46,16 @@ int main(int argc, char** argv) {
   DMMGSetDM(dmmg, (DM) da);
 
   //Create Full Domain solution vector (Initial Guess)
-  Vec solVecFull = DMMGGetx(dmmg);
-  Vec rhsVecFull = DMMGGetRHS(dmmg);
+  Vec solFull = DMMGGetx(dmmg);
+  Vec rhsFull = DMMGGetRHS(dmmg);
 
-  VecZeroEntries(solVecFull);
+  VecZeroEntries(solFull);
 
   //Compute base RHS vec for full domain
+  Vec rhsFullBase;
+  VecDuplicate(rhsFull, &rhsFullBase);
+
+  computeRHSterm1_Full(da, rhsFullBase);
 
   //Call DMMGSetKSP and pass CreateMat. Set RHS function = NULL 
 
@@ -81,6 +85,8 @@ int main(int argc, char** argv) {
     //Solve Full domain
 
   }//end for Picar block
+
+  VecDestroy(rhsFullBase);
 
   DMMGDestroy(dmmg);
   DADestroy(da);
