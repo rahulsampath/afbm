@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
   computeRHSterm1_Full(da, rhsFullBase);
 
   //Call DMMGSetKSP and pass CreateMat. Set RHS function = NULL 
+  DMMGSetKSP(dmmg, PETSC_NULL, createMatrix_Full); 
 
   //Create Neumann Mat, base RHS vec for fat boundary
 
