@@ -7,7 +7,8 @@
 #include "petscvec.h"
 #include "linear_implicit_system.h"
 
-void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec);
+void createNeumannMatrix_Fat(Mat & petscMat, Vec & petscVec,
+    LinearImplicitSystem & system, const DofMap & dof_map, MeshBase & mesh);
 
 void dirichletMatCorrection_Fat(Mat mat, const DofMap & dof_map, MeshBase & mesh, const int bnd_id);
 
