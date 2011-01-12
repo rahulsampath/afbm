@@ -61,10 +61,19 @@ int main(int argc, char** argv) {
   DMMGSetKSP(dmmg, PETSC_NULL, createMatrix_Full); 
 
   //Create Neumann Mat, base RHS vec for fat boundary
+  Mat neumannMat_Fat;
+  Vec rhsVec_Fat;
+  createNeumannMatrix_Fat(neumannMat_Fat, rhsVec_Fat, system, dof_map, mesh) ;
 
   //Duplicate Neumann Mat and base RHS vec for fat boundary
+  Mat duplicateMat;
+  Vec duplicateVec;
+  MatDuplicate( neumannMat_Fat, MAT_COPY_VALUES, &duplicateMat);
+  VecDuplicate( rhsVec_Fat, &duplicateVec);
 
   //Create Fat boundary solution vector
+  Vec solutionVec_Fat;
+  VecDuplicate( rhsVec_Fat, &solutionVec_Fat);
 
   //Create KSP for fat boundary 
 
@@ -72,14 +81,23 @@ int main(int argc, char** argv) {
   {
 
     //Call DirichletAddCorrection2 for fat boundary and add it to base RHS
+    Vec rhsVecCorrection_Fat;
+    VecDuplicate( rhsVec_Fat, &rhsVecCorrection_Fat);
+    dirichletVecAddCorrection2_Fat( duplicateMat, rhsVecCorrection_Fat, solutionVec_Fat, N, dof_map, mesh);
+    VecAXPY(rhsVec_Fat, 1, rhsVecCorrection_Fat);
 
     //Call DirichletMatrixCorrection for bnd=1 and bnd=2 
+    dirichletMatCorrection_Fat( neumannMat_Fat, dof_map, mesh, 1 );      
+    dirichletMatCorrection_Fat( neumannMat_Fat, dof_map, mesh, 2 );
 
     //Call DirichletSetCorrection1 and DirichletSetCorrection2 for fat boundary
+    dirichletVecSetCorrection1_Fat(rhsVec_Fat, dof_map, mesh) ;
+    dirichletVecSetCorrection2_Fat(rhsVec_Fat, solFull, N, dof_map, mesh) ;
 
     //Solve Fat boundary problem 
 
     //Add dirac delta corrections to base RHS for full domain
+    getDiracFunctions_Fat(system, solutionVec_Fat, rhsVec_Fat, mesh);
 
     //Call DirichletSetCorrection for RHS of full domain
 
