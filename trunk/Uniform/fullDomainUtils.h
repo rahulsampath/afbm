@@ -3,7 +3,10 @@
 #define __FULL_DOMAIN__
 
 #include "petscda.h"
+#include "petscdmmg.h"
 #include <vector>
+
+PetscErrorCode createMatrix_Full(DMMG dmmg, Mat J, Mat B);
 
 void createNeumannMatrix_Full(DA da, Mat mat);
 

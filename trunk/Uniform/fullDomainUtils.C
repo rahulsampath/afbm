@@ -2,12 +2,27 @@
 #include "fullDomainUtils.h"
 #include <iostream>
 #include <cstdlib>
+#include <cassert>
 
 #include "global.h"
 
 #define __RG_NODE_ID__(xi, yi, zi, N) ( ( ( ((zi)*(N)) + (yi) )*(N) ) + (xi) )
 
 extern double stencil[64];
+
+PetscErrorCode createMatrix_Full(DMMG dmmg, Mat J, Mat B) {
+  PetscFunctionBegin;
+
+  DA da = DMMGGetDA(&dmmg);
+
+  assert(J == B);
+
+  createNeumannMatrix_Full(da, J);
+
+  applyDirichletMatrixCorrection_Full(da, J);
+
+  PetscFunctionReturn(0);
+}
 
 void createNeumannMatrix_Full(DA da, Mat mat) {
 
