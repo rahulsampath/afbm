@@ -3,16 +3,19 @@ INCLUDE = ${libmesh_INCLUDE}
 
 LIBS = ${libmesh_LIBS} 
 
-all : picardDriver
+all : picardDriver testLibMesh
 
 %.o: %.C
 	$(libmesh_CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
+
+testLibMesh : ./testLibMesh.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 
+	$(libmesh_CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) 
 
 picardDriver : ./picardDriver.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 
 	$(libmesh_CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) 
 
 clean :
-	rm -rf picardDriver
+	rm -rf picardDriver testLibMesh
 	rm -rf *.o
 
 
