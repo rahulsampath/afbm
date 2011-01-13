@@ -68,12 +68,19 @@ int main(int argc, char** argv) {
   //Duplicate Neumann Mat and base RHS vec for fat boundary
   Mat matFat;
   Vec rhsFatBase;
-  MatDuplicate( neumannMatFat, MAT_COPY_VALUES, &matFat);
-  VecDuplicate( rhsVec_Fat, &duplicateVec);
+  MatDuplicate(neumannMatFat, MAT_COPY_VALUES, &matFat);
+  VecDuplicate(rhsFat, &rhsFatBase);
+
+  //Call DirichletMatrixCorrection for bnd=1 and bnd=2 
+  dirichletMatCorrection_Fat( matFat, dof_map, mesh, 1 );      
+  dirichletMatCorrection_Fat( matFat, dof_map, mesh, 2 );
 
   //Create Fat boundary solution vector
-  Vec solutionVec_Fat;
-  VecDuplicate( rhsVec_Fat, &solutionVec_Fat);
+  Vec solFat;
+  VecDuplicate(rhsFat, &solFat);
+
+  Vec rhsCorrectionFat;
+  VecDuplicate(rhsFat, &rhsCorrectionFat);
 
   //Create KSP for fat boundary 
 
@@ -81,23 +88,17 @@ int main(int argc, char** argv) {
   {
 
     //Call DirichletAddCorrection2 for fat boundary and add it to base RHS
-    Vec rhsVecCorrection_Fat;
-    VecDuplicate( rhsVec_Fat, &rhsVecCorrection_Fat);
-    dirichletVecAddCorrection2_Fat( duplicateMat, rhsVecCorrection_Fat, solutionVec_Fat, N, dof_map, mesh);
-    VecAXPY(rhsVec_Fat, 1, rhsVecCorrection_Fat);
-
-    //Call DirichletMatrixCorrection for bnd=1 and bnd=2 
-    dirichletMatCorrection_Fat( neumannMat_Fat, dof_map, mesh, 1 );      
-    dirichletMatCorrection_Fat( neumannMat_Fat, dof_map, mesh, 2 );
+    dirichletVecAddCorrection2_Fat( neumannMatFat, rhsCorrectionFat, solFat, N, dof_map, mesh);
+    VecAXPY(rhsFat, 1, rhsCorrectionFat);
 
     //Call DirichletSetCorrection1 and DirichletSetCorrection2 for fat boundary
-    dirichletVecSetCorrection1_Fat(rhsVec_Fat, dof_map, mesh) ;
-    dirichletVecSetCorrection2_Fat(rhsVec_Fat, solFull, N, dof_map, mesh) ;
+    dirichletVecSetCorrection1_Fat(rhsFat, dof_map, mesh) ;
+    dirichletVecSetCorrection2_Fat(rhsFat, solFull, N, dof_map, mesh) ;
 
     //Solve Fat boundary problem 
 
     //Add dirac delta corrections to base RHS for full domain
-    getDiracFunctions_Fat(system, solutionVec_Fat, rhsVec_Fat, mesh);
+    getDiracFunctions_Fat(system, solFat, rhsFat, mesh);
 
     //Call DirichletSetCorrection for RHS of full domain
 
@@ -105,7 +106,14 @@ int main(int argc, char** argv) {
 
   }//end for Picar block
 
-  VecDestroy();
+  VecDestroy(rhsCorrectionFat);
+  VecDestroy(solFat);
+  VecDestroy(rhsFatBase);
+  VecDestroy(rhsFat);
+
+  MatDestroy(matFat);
+  MatDestroy(neumannMatFat);
+
   VecDestroy(rhsFullBase);
 
   DMMGDestroy(dmmg);
