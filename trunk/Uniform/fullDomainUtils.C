@@ -13,7 +13,7 @@ extern double stencil[64];
 PetscErrorCode createMatrix_Full(DMMG dmmg, Mat J, Mat B) {
   PetscFunctionBegin;
 
-  DA da = DMMGGetDA(&dmmg);
+  DA da = (DA)(dmmg->dm);
 
   assert(J == B);
 

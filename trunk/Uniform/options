@@ -1,50 +1,60 @@
 
- -fat_ksp_initial_guess_nonzero false
- -fat_ksp_type cg
- -fat_ksp_monitor
- -fat_ksp_max_it 20
- -fat_ksp_rtol 1e-10
- -fat_ksp_atol 1e-12 
- -fat_ksp_converged_reason
- -fat_pc_type hypre
+%FAT BOUNDARY OPTIONS
+-fat_ksp_initial_guess_nonzero false
+-fat_ksp_type cg
+-fat_ksp_monitor
+-fat_ksp_max_it 20
+-fat_ksp_rtol 1e-16
+-fat_ksp_atol 1e-14 
+-fat_ksp_converged_reason
+-fat_pc_type ilu
+-fat_pc_hypre_type boomeramg
+-fat_pc_hypre_boomeramg_cycle_type  V
+-fat_pc_hypre_boomeramg_max_levels 25
+-fat_pc_hypre_boomeramg_max_iter 1
+-fat_pc_hypre_boomeramg_tol 0.0
+-fat_pc_hypre_boomeramg_relax_type_all Jacobi 
+-fat_pc_hypre_boomeramg_relax_type_coarse Gaussian-elimination 
+-fat_pc_hypre_boomeramg_grid_sweeps_all 4
 
- -Nc 17
- -dmmg_refine true
- -dmmg_nlevels 3
- -dmmg_grid_sequence false
- 
- -full_ksp_initial_guess_nonzero false
- -full_ksp_type cg
- -full_ksp_monitor
- -full_ksp_max_it 20
- -full_ksp_rtol 1e-10
- -full_ksp_atol 1e-12 
- -full_ksp_converged_reason
- -full_pc_type mg
- -full_pc_mg_galerkin false
+%FULL DOMAIN OPTIONS
+-Nc 17
+-dmmg_refine true
+-dmmg_nlevels 3
+-dmmg_grid_sequence false
 
- -full_pc_mg_type multiplicative
- -full_pc_mg_multiplicative_cycles 1
- -full_pc_mg_cycles v
+-ksp_initial_guess_nonzero false
+-ksp_type cg
+-ksp_monitor
+-ksp_max_it 20
+-ksp_rtol 1e-12
+-ksp_atol 1e-14 
+-ksp_converged_reason
+-pc_type mg
+-pc_mg_galerkin false
 
- -full_mg_levels_ksp_type richardson
- -full_mg_levels_ksp_norm_type no
- -full_mg_levels_ksp_left_pc
- -full_mg_levels_ksp_richardson_scale 0.4
+-pc_mg_type multiplicative
+-pc_mg_multiplicative_cycles 1
+-pc_mg_cycles v
 
- -full_mg_levels_ksp_max_it 4
- -full_mg_levels_pc_type jacobi
- -full_mg_levels_ksp_rtol 1e-10
- -full_mg_levels_ksp_atol 1e-12
- %-full_mg_levels_ksp_converged_reason
- %-full_mg_levels_ksp_monitor
- 
- %If all processors are active on the coarsest grid, then the following options
- %will be used. Else they will be ignored
- -full_mg_coarse_ksp_type preonly
- -full_mg_coarse_ksp_max_it 1
- -full_mg_coarse_pc_type lu
- -full_mg_coarse_ksp_rtol 1e-10
- -full_mg_coarse_ksp_atol 1e-12
- 
- 
+-mg_levels_ksp_type richardson
+-mg_levels_ksp_norm_type no
+-mg_levels_ksp_left_pc
+-mg_levels_ksp_richardson_scale 0.6667
+
+-mg_levels_ksp_max_it 4
+-mg_levels_pc_type jacobi
+-mg_levels_ksp_rtol 1e-10
+-mg_levels_ksp_atol 1e-12
+%-mg_levels_ksp_converged_reason
+%-mg_levels_ksp_monitor
+
+%If all processors are active on the coarsest grid, then the following options
+%will be used. Else they will be ignored
+-mg_coarse_ksp_type preonly
+-mg_coarse_ksp_max_it 1
+-mg_coarse_pc_type lu
+-mg_coarse_ksp_rtol 1e-10
+-mg_coarse_ksp_atol 1e-12
+
+
