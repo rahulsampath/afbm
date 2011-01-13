@@ -151,7 +151,7 @@ void dirichletMatCorrection_Fat(Mat mat, const DofMap & dof_map, MeshBase & mesh
 
 }
 
-void dirichletVecAddCorrection2_Fat(Mat & stiffnessMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
+void dirichletVecAddCorrection2_Fat(Mat & neumannMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
     const DofMap & dof_map, MeshBase & mesh)
 {
   Vec dirichletVec;
@@ -161,7 +161,7 @@ void dirichletVecAddCorrection2_Fat(Mat & stiffnessMatrix, Vec correctionVec, Ve
 
   dirichletVecSetCorrection2_Fat( dirichletVec, FullDomainSolutionVec, N, dof_map, mesh);
 
-  MatMult( stiffnessMatrix, dirichletVec, correctionVec );
+  MatMult( neumannMatrix, dirichletVec, correctionVec );
 
   VecScale(correctionVec, -1.0);
 
@@ -232,7 +232,7 @@ void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int
 
 }
 
-void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs, MeshBase & mesh)
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh)
 {
 
   MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
@@ -264,7 +264,7 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
   std::vector<double> vals;
   PetscScalar solValue;
 
-  VecZeroEntries(rhs);
+  VecZeroEntries(rhsFull);
 
   for( ; el != end_el; ++el) {
 
@@ -298,14 +298,14 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
             for (unsigned int l=0; l<dphi.size(); l++)
             {
               idx = dof_indices[l];
-              VecGetValues( solVec, 1 , &idx , &solValue );
+              VecGetValues( solFat, 1 , &idx , &solValue );
               dVdx +=  dphi[l][qp](0)*solValue;
               dVdy +=  dphi[l][qp](1)*solValue;
               dVdz +=  dphi[l][qp](2)*solValue;
             }//nodes
 
             dVdn  = (dVdx*face_normal[qp](0) + dVdy*face_normal[qp](1) + dVdz*face_normal[qp](2) )*vals[j]*JxW[qp];
-            VecSetValue(rhs, indices[j], dVdn , ADD_VALUES);
+            VecSetValue(rhsFull, indices[j], dVdn , ADD_VALUES);
           }//full domain indices
         }//quadrature points
 
@@ -314,8 +314,8 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs
     }//elem side iterator
   }// elem iterator
 
-  VecAssemblyBegin(rhs);
-  VecAssemblyEnd(rhs);
+  VecAssemblyBegin(rhsFull);
+  VecAssemblyEnd(rhsFull);
 
 }
 
