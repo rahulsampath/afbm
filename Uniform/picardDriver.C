@@ -61,14 +61,14 @@ int main(int argc, char** argv) {
   DMMGSetKSP(dmmg, PETSC_NULL, createMatrix_Full); 
 
   //Create Neumann Mat, base RHS vec for fat boundary
-  Mat neumannMat_Fat;
-  Vec rhsVec_Fat;
-  createNeumannMatrix_Fat(neumannMat_Fat, rhsVec_Fat, system, dof_map, mesh) ;
+  Mat neumannMatFat;
+  Vec rhsFat;
+  createNeumannMatrix_Fat(neumannMatFat, rhsFat, system, dof_map, mesh) ;
 
   //Duplicate Neumann Mat and base RHS vec for fat boundary
-  Mat duplicateMat;
-  Vec duplicateVec;
-  MatDuplicate( neumannMat_Fat, MAT_COPY_VALUES, &duplicateMat);
+  Mat matFat;
+  Vec rhsFatBase;
+  MatDuplicate( neumannMatFat, MAT_COPY_VALUES, &matFat);
   VecDuplicate( rhsVec_Fat, &duplicateVec);
 
   //Create Fat boundary solution vector
@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
 
   }//end for Picar block
 
+  VecDestroy();
   VecDestroy(rhsFullBase);
 
   DMMGDestroy(dmmg);
