@@ -62,14 +62,14 @@ int main(int argc, char** argv) {
 
   //Create Neumann Mat, base RHS vec for fat boundary
   Mat neumannMatFat;
-  Vec rhsFat;
-  createNeumannMatrix_Fat(neumannMatFat, rhsFat, system, dof_map, mesh) ;
+  Vec rhsFatBase;
+  createNeumannMatrix_Fat(neumannMatFat, rhsFatBase, system, dof_map, mesh) ;
 
   //Duplicate Neumann Mat and base RHS vec for fat boundary
   Mat matFat;
-  Vec rhsFatBase;
+  Vec rhsFat;
   MatDuplicate(neumannMatFat, MAT_COPY_VALUES, &matFat);
-  VecDuplicate(rhsFat, &rhsFatBase);
+  VecDuplicate(rhsFatBase, &rhsFat);
 
   //Call DirichletMatrixCorrection for bnd=1 and bnd=2 
   dirichletMatCorrection_Fat( matFat, dof_map, mesh, 1 );      
@@ -77,10 +77,7 @@ int main(int argc, char** argv) {
 
   //Create Fat boundary solution vector
   Vec solFat;
-  VecDuplicate(rhsFat, &solFat);
-
-  Vec rhsCorrectionFat;
-  VecDuplicate(rhsFat, &rhsCorrectionFat);
+  VecDuplicate(rhsFatBase, &solFat);
 
   //Create KSP for fat boundary 
 
@@ -88,8 +85,8 @@ int main(int argc, char** argv) {
   {
 
     //Call DirichletAddCorrection2 for fat boundary and add it to base RHS
-    dirichletVecAddCorrection2_Fat( neumannMatFat, rhsCorrectionFat, solFat, N, dof_map, mesh);
-    VecAXPY(rhsFat, 1, rhsCorrectionFat);
+    dirichletVecAddCorrection2_Fat( neumannMatFat, rhsFat, solFull, N, dof_map, mesh);
+    VecAXPY(rhsFat, 1, rhsFatBase);
 
     //Call DirichletSetCorrection1 and DirichletSetCorrection2 for fat boundary
     dirichletVecSetCorrection1_Fat(rhsFat, dof_map, mesh) ;
@@ -98,15 +95,16 @@ int main(int argc, char** argv) {
     //Solve Fat boundary problem 
 
     //Add dirac delta corrections to base RHS for full domain
-    getDiracFunctions_Fat(system, solFat, rhsFat, mesh);
+    getDiracFunctions_Fat(system, solFat, rhsFull, mesh);
+    VecAXPY(rhsFull, 1, rhsFullBase);
 
     //Call DirichletSetCorrection for RHS of full domain
+    setDirichletValues_Full(da, rhsFull);
 
     //Solve Full domain
 
   }//end for Picar block
 
-  VecDestroy(rhsCorrectionFat);
   VecDestroy(solFat);
   VecDestroy(rhsFatBase);
   VecDestroy(rhsFat);

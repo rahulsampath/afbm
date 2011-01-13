@@ -17,10 +17,10 @@ void dirichletVecSetCorrection1_Fat(Vec dirichletVec, const DofMap & dof_map, Me
 void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int N,
     const DofMap & dof_map, MeshBase & mesh);
 
-void dirichletVecAddCorrection2_Fat(Mat & stiffnessMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
+void dirichletVecAddCorrection2_Fat(Mat & neumannMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
     const DofMap & dof_map, MeshBase & mesh);
 
-void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solVec, Vec & rhs, MeshBase & mesh);
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh);
 
 void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh);
 
