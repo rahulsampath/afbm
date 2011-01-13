@@ -61,7 +61,6 @@ int main(int argc, char** argv) {
   computeRHSterm1_Full(DMMGGetDA(dmmg), rhsFullBase);
 
   //Call DMMGSetKSP and pass CreateMat. Set RHS function = NULL 
-  DMMGSetOptionsPrefix(dmmg, "full_");
   DMMGSetKSP(dmmg, PETSC_NULL, createMatrix_Full); 
 
   //Create Neumann Mat, base RHS vec for fat boundary
@@ -113,12 +112,13 @@ int main(int argc, char** argv) {
 
     //Solve Full domain
     DMMGSolve(dmmg);
+
   }//end for Picard block
 
   VecDestroy(solFat);
   VecDestroy(rhsFatBase);
   VecDestroy(rhsFat);
-
+  
   MatDestroy(matFat);
   MatDestroy(neumannMatFat);
 
@@ -129,6 +129,6 @@ int main(int argc, char** argv) {
   DMMGDestroy(dmmg);
 
   PetscFinalize();
-
+  
 }
 
