@@ -31,19 +31,22 @@ int main(int argc, char** argv) {
   MeshBase & mesh = equation_systems.get_mesh();
 
   //Init stuff for Full domain (Create DA/DMMG) 
-  PetscInt N = 17;
-  PetscOptionsGetInt(0, "-N", &N, 0);
-
-  DA da;
-  DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, N, N, N,
-      PETSC_DECIDE, PETSC_DECIDE, PETSC_DECIDE, 1, 1, PETSC_NULL, PETSC_NULL, PETSC_NULL, &da);
+  PetscInt Nc = 17;
+  PetscOptionsGetInt(0, "-Nc", &Nc, 0);
 
   PetscInt nlevels = 1;
   PetscOptionsGetInt(0, "-dmmg_nlevels", &nlevels, 0);
 
+  PetscInt Nf = (((Nc - 1) << nlevels) + 1);
+
+  DA dac;
+  DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, Nc, Nc, Nc,
+      PETSC_DECIDE, PETSC_DECIDE, PETSC_DECIDE, 1, 1, PETSC_NULL, PETSC_NULL, PETSC_NULL, &dac);
+
   DMMG* dmmg;
   DMMGCreate(MPI_COMM_WORLD, nlevels, NULL, &dmmg);
-  DMMGSetDM(dmmg, (DM) da);
+  DMMGSetDM(dmmg, (DM) dac);
+  DADestroy(dac);
 
   //Create Full Domain solution vector (Initial Guess)
   Vec solFull = DMMGGetx(dmmg);
@@ -55,9 +58,10 @@ int main(int argc, char** argv) {
   Vec rhsFullBase;
   VecDuplicate(rhsFull, &rhsFullBase);
 
-  computeRHSterm1_Full(da, rhsFullBase);
+  computeRHSterm1_Full(DMMGGetDA(dmmg), rhsFullBase);
 
   //Call DMMGSetKSP and pass CreateMat. Set RHS function = NULL 
+  DMMGSetOptionsPrefix(dmmg, "full_");
   DMMGSetKSP(dmmg, PETSC_NULL, createMatrix_Full); 
 
   //Create Neumann Mat, base RHS vec for fat boundary
@@ -80,30 +84,36 @@ int main(int argc, char** argv) {
   VecDuplicate(rhsFatBase, &solFat);
 
   //Create KSP for fat boundary 
+  KSP kspFat;
+  KSPCreate(MPI_COMM_WORLD, &kspFat);
+  KSPSetOperators(kspFat, matFat, matFat, SAME_PRECONDITIONER);
+  KSPSetOptionsPrefix(kspFat, "fat_");
+  KSPSetFromOptions(kspFat);
+  KSPSetUp(kspFat);
 
   //Picard block
   {
-
     //Call DirichletAddCorrection2 for fat boundary and add it to base RHS
-    dirichletVecAddCorrection2_Fat( neumannMatFat, rhsFat, solFull, N, dof_map, mesh);
+    dirichletVecAddCorrection2_Fat( neumannMatFat, rhsFat, solFull, Nf, dof_map, mesh);
     VecAXPY(rhsFat, 1, rhsFatBase);
 
     //Call DirichletSetCorrection1 and DirichletSetCorrection2 for fat boundary
     dirichletVecSetCorrection1_Fat(rhsFat, dof_map, mesh) ;
-    dirichletVecSetCorrection2_Fat(rhsFat, solFull, N, dof_map, mesh) ;
+    dirichletVecSetCorrection2_Fat(rhsFat, solFull, Nf, dof_map, mesh);
 
     //Solve Fat boundary problem 
+    KSPSolve(kspFat, rhsFat, solFat);
 
     //Add dirac delta corrections to base RHS for full domain
     getDiracFunctions_Fat(system, solFat, rhsFull, mesh);
     VecAXPY(rhsFull, 1, rhsFullBase);
 
     //Call DirichletSetCorrection for RHS of full domain
-    setDirichletValues_Full(da, rhsFull);
+    setDirichletValues_Full(DMMGGetDA(dmmg), rhsFull);
 
     //Solve Full domain
-
-  }//end for Picar block
+    DMMGSolve(dmmg);
+  }//end for Picard block
 
   VecDestroy(solFat);
   VecDestroy(rhsFatBase);
@@ -114,8 +124,9 @@ int main(int argc, char** argv) {
 
   VecDestroy(rhsFullBase);
 
+  KSPDestroy(kspFat);
+
   DMMGDestroy(dmmg);
-  DADestroy(da);
 
   PetscFinalize();
 
