@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     KSPSolve(kspFat, rhsFat, solFat);
 
     //Add dirac delta corrections to base RHS for full domain
-    getDiracFunctions_Fat(system, solFat, rhsFull, mesh);
+    getDiracFunctions_Fat(system, solFat, rhsFull, mesh, Nf);
     VecAXPY(rhsFull, 1, rhsFullBase);
 
     //Call DirichletSetCorrection for RHS of full domain
