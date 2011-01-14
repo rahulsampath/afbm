@@ -3,7 +3,8 @@ SHELL = /bin/sh
 
 include ${LIBMESH_DIR}/Make.common
 
-CXXFLAGS = -O3 
+# These should be defined only in the debug mode.
+CXXFLAGS = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC 
 
 include ./makefileCore
 
