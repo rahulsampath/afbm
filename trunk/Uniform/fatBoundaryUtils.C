@@ -237,7 +237,7 @@ void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int
 
 }
 
-void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh)
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh, int N)
 {
 
   MeshBase::const_element_iterator       el     = mesh.local_elements_begin();
@@ -264,7 +264,7 @@ void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhs
   const std::vector<Point>& face_normal = (fe_face->get_normals());
 
   std::vector<unsigned int> dof_indices;
-  int idx, N;
+  int idx;
   std::vector<unsigned int> indices;
   std::vector<double> vals;
   PetscScalar solValue;

@@ -20,7 +20,7 @@ void dirichletVecSetCorrection2_Fat( Vec dirichletVec, Vec FullDomainSolVec, int
 void dirichletVecAddCorrection2_Fat(Mat & neumannMatrix, Vec correctionVec, Vec FullDomainSolutionVec, int N,
     const DofMap & dof_map, MeshBase & mesh);
 
-void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh);
+void getDiracFunctions_Fat(LinearImplicitSystem& system, Vec & solFat, Vec & rhsFull, MeshBase & mesh, int N);
 
 void getBoundary_Fat(LinearImplicitSystem& system, std::vector<double> fatBnd, MeshBase & mesh);
 
