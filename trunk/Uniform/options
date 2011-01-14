@@ -7,7 +7,7 @@
 -fat_ksp_rtol 1e-16
 -fat_ksp_atol 1e-14 
 -fat_ksp_converged_reason
--fat_pc_type ilu
+-fat_pc_type jacobi
 -fat_pc_hypre_type boomeramg
 -fat_pc_hypre_boomeramg_cycle_type  V
 -fat_pc_hypre_boomeramg_max_levels 25
