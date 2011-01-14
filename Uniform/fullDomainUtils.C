@@ -473,9 +473,15 @@ double interpolateAtPt(Vec vec, int N, double x, double y, double z) {
 
   VecGetArray(vec, &arr);
 
+  PetscInt sz;
+  VecGetLocalSize(vec, &sz);
+
+  assert(sz == (N*N*N));
+
   double val = 0.0;
 
   for(int node = 0; node < 8; node++) {
+    assert(indices[node] < sz);
     val += (arr[indices[node]]*phi_Full(node, psi, eta, gamma));
   }
 

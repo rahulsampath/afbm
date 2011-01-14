@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   PetscInt nlevels = 1;
   PetscOptionsGetInt(0, "-dmmg_nlevels", &nlevels, 0);
 
-  PetscInt Nf = (((Nc - 1) << nlevels) + 1);
+  PetscInt Nf = (((Nc - 1) << (nlevels - 1)) + 1);
 
   DA dac;
   DACreate3d(MPI_COMM_WORLD, DA_NONPERIODIC, DA_STENCIL_BOX, Nc, Nc, Nc,
