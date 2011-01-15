@@ -12,6 +12,8 @@
 
 int main(int argc, char** argv) {
 
+//  PetscInitialize(&argc, &argv, "options", 0);
+
   LibMeshInit init(argc, argv);
 
   PetscOptionsInsertFile(MPI_COMM_WORLD, "options", PETSC_TRUE);
@@ -129,6 +131,15 @@ int main(int argc, char** argv) {
 
   DMMGDestroy(dmmg);
 
+  mesh.clear();
+
+  system.clear();
+
+  equation_systems.clear();
+
+  fatBoundary.clear();
+
+//  PetscFinalize();
 
 }
 
