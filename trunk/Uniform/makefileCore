@@ -8,7 +8,7 @@ all : picardDriver testLibMesh
 %.o: %.C
 	$(libmesh_CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
 
-testLibMesh : ./testLibMesh.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 
+testLibMesh : ./testLibMesh.o  
 	$(libmesh_CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) 
 
 picardDriver : ./picardDriver.o ./fatBoundaryUtils.o ./fullDomainUtils.o ./couplingUtils.o 

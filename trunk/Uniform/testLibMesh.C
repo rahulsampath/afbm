@@ -1,19 +1,13 @@
 
 #include "petsc.h"
-#include "petscdmmg.h"
-
-#include "fullDomainUtils.h"
-#include "fatBoundaryUtils.h"
 #include "mesh.h"
 #include "equation_systems.h"
-
-#define __MAIN__
-#include "global.h"
+#include "linear_implicit_system.h"
 
 int main(int argc, char** argv) {
 
   PetscInitialize(&argc, &argv, NULL, NULL);
-  LibMeshInit init(argc, argv);
+  LibMeshInit init(argc, argv, PETSC_COMM_SELF);
 
   //Init stuff for Fat Boundary (Read mesh, build equation systems, dof-map)  
   Mesh fatBoundary (3);
