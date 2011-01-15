@@ -12,8 +12,9 @@
 
 int main(int argc, char** argv) {
 
-  PetscInitialize(&argc, &argv, "options", NULL);
   LibMeshInit init(argc, argv);
+
+  PetscOptionsInsertFile(MPI_COMM_WORLD, "options", PETSC_TRUE);
 
   //Init stuff for Fat Boundary (Read mesh, build equation systems, dof-map)  
   Mesh fatBoundary (3);
@@ -118,7 +119,7 @@ int main(int argc, char** argv) {
   VecDestroy(solFat);
   VecDestroy(rhsFatBase);
   VecDestroy(rhsFat);
-  
+
   MatDestroy(matFat);
   MatDestroy(neumannMatFat);
 
@@ -128,7 +129,6 @@ int main(int argc, char** argv) {
 
   DMMGDestroy(dmmg);
 
-  PetscFinalize();
-  
+
 }
 
