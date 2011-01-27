@@ -12,8 +12,6 @@
 
 int main(int argc, char** argv) {
 
-//  PetscInitialize(&argc, &argv, "options", 0);
-
   LibMeshInit init(argc, argv);
 
   PetscOptionsInsertFile(MPI_COMM_WORLD, "options", PETSC_TRUE);
@@ -40,6 +38,12 @@ int main(int argc, char** argv) {
   PetscInt nlevels = 1;
   PetscOptionsGetInt(0, "-dmmg_nlevels", &nlevels, 0);
 
+  PetscInt maxIters = 10;
+  PetscOptionsGetInt(0, "-max_iters", &maxIters, 0);
+
+  PetscScalar theta = 0.9;
+  PetscOptionsGetScalar(0, "-theta", &theta, 0);
+
   PetscInt Nf = (((Nc - 1) << (nlevels - 1)) + 1);
 
   DA dac;
@@ -54,6 +58,8 @@ int main(int argc, char** argv) {
   //Create Full Domain solution vector (Initial Guess)
   Vec solFull = DMMGGetx(dmmg);
   Vec rhsFull = DMMGGetRHS(dmmg);
+  Vec solFullTmp;
+  VecDuplicate(solFull, &solFullTmp);
 
   VecZeroEntries(solFull);
 
@@ -94,7 +100,10 @@ int main(int argc, char** argv) {
   KSPSetUp(kspFat);
 
   //Picard block
-  {
+  for(int i = 0; i < maxIters; i++) {
+    //Store for later
+    VecCopy(solFull, solFullTmp);
+
     //Call DirichletAddCorrection2 for fat boundary and add it to base RHS
     dirichletVecAddCorrection2_Fat( neumannMatFat, rhsFat, solFull, Nf, dof_map, mesh);
     VecAXPY(rhsFat, 1, rhsFatBase);
@@ -116,6 +125,16 @@ int main(int argc, char** argv) {
     //Solve Full domain
     DMMGSolve(dmmg);
 
+    //Update solFull
+    VecAXPBY(solFull, theta, (1.0 - theta), solFullTmp);
+
+    bool converged = false;
+    //Check convergence
+
+    if(converged) {
+      break;
+    }
+
   }//end for Picard block
 
   VecDestroy(solFat);
@@ -126,6 +145,7 @@ int main(int argc, char** argv) {
   MatDestroy(neumannMatFat);
 
   VecDestroy(rhsFullBase);
+  VecDestroy(solFullTmp);
 
   KSPDestroy(kspFat);
 
@@ -138,8 +158,6 @@ int main(int argc, char** argv) {
   equation_systems.clear();
 
   fatBoundary.clear();
-
-//  PetscFinalize();
 
 }
 
