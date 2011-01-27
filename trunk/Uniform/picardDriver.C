@@ -44,6 +44,9 @@ int main(int argc, char** argv) {
   PetscScalar theta = 0.9;
   PetscOptionsGetScalar(0, "-theta", &theta, 0);
 
+  PetscScalar tol = 1.0e-10;
+  PetscOptionsGetScalar(0, "-tol", &tol, 0);
+
   PetscInt Nf = (((Nc - 1) << (nlevels - 1)) + 1);
 
   DA dac;
@@ -128,10 +131,11 @@ int main(int argc, char** argv) {
     //Update solFull
     VecAXPBY(solFull, theta, (1.0 - theta), solFullTmp);
 
-    bool converged = false;
     //Check convergence
-
-    if(converged) {
+    double diffNorm;
+    VecAXPY(solFullTmp, -1, solFull);
+    VecNorm(solFullTmp, NORM_2, &diffNorm);
+    if(diffNorm < tol) {
       break;
     }
 
