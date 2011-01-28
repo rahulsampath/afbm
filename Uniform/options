@@ -1,7 +1,7 @@
 
 -tol 1.0e-10
--max_iters 10
--theta 0.8
+-max_iters 100
+-theta 0.95
 
 %FAT BOUNDARY OPTIONS
 -fat_ksp_initial_guess_nonzero false
