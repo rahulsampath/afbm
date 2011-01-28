@@ -103,7 +103,9 @@ int main(int argc, char** argv) {
   KSPSetUp(kspFat);
 
   //Picard block
-  for(int i = 0; i < maxIters; i++) {
+  int iter = 0;
+  for(; iter < maxIters; iter++) {
+    std::cout<<"iter = "<<iter<<std::endl;
     //Store for later
     VecCopy(solFull, solFullTmp);
 
@@ -138,8 +140,8 @@ int main(int argc, char** argv) {
     if(diffNorm < tol) {
       break;
     }
-
   }//end for Picard block
+
 
   VecDestroy(solFat);
   VecDestroy(rhsFatBase);
